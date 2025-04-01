@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+<!-- Setam titlul paginii -->
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<!-- Sectiune pentru top 5 cele mai vandute masini -->
+<h2 align="center" style="margin-top: 20px; margin-bottom: 20px; font-weight: bold; color: #333;">
+    Top 5 Cele Mai Vândute Mașini
+</h2>
+
+<!-- Carousel pentru cele mai vandute masini -->
+<div class="carousel-container" data-carousel-id="1">
+    <!-- Buton pentru navigarea spre stanga -->
+    <button class="carousel-prev" onclick="moveCarousel(-1, 1)">❮</button>
+    
+    <!-- Wrapper pentru elementele din carousel -->
+    <div class="carousel-wrapper">
+        <div class="carousel">
+            <!-- Iteram prin lista de masini populare -->
+            {% for masina in masini_populare %}
+                <div class="carousel-item">
+                    <!-- Imaginea masinii -->
+                    <img src="{{ masina['Imagine_URL'] }}" alt="{{ masina['Model'] }}">
+                    
+                    <!-- Informatii despre masina -->
+                    <div class="info-panou">
+                        <p><strong>Marca:</strong> {{ masina['Marca'] }}</p>
+                        <p><strong>Model:</strong> {{ masina['Model'] }}</p>
+                        <p><strong>An fabricație:</strong> {{ masina['An_Fabricatie'] }}</p>
+                        <p><strong>Tarif:</strong> {{ masina['Tarif'] }} RON/zi</p>
+                        <p><strong>Locație:</strong> {{ masina['Nume_Locatie'] }}</p>
+                    </div>
+                    
+                    <!-- Buton pentru rezervarea masinii -->
+                    <button class="rezerva2-btn" data-masina-id="{{ masina['ID_Masina'] }}">Rezervă</button>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <!-- Buton pentru navigarea spre dreapta -->
+    <button class="carousel-next" onclick="moveCarousel(1, 1)">❯</button>
+</div>
+
+<!-- Sectiune pentru top 5 cele mai ieftine masini -->
+<h2 align="center" style="margin-top: 40px; margin-bottom: 20px; font-weight: bold; color: #333;">
+    Top 5 Cele Mai Ieftine Mașini
+</h2>
+
+<!-- Carousel pentru cele mai ieftine masini -->
+<div class="carousel-container" data-carousel-id="2">
+    <!-- Buton pentru navigarea spre stanga -->
+    <button class="carousel-prev" onclick="moveCarousel(-1, 2)">❮</button>
+    
+    <!-- Wrapper pentru elementele din carousel -->
+    <div class="carousel-wrapper">
+        <div class="carousel">
+            <!-- Iteram prin lista de masini ieftine -->
+            {% for masina in masini_ieftine %}
+                <div class="carousel-item">
+                    <!-- Imaginea masinii -->
+                    <img src="{{ masina['Imagine_URL'] }}" alt="{{ masina['Model'] }}">
+                    
+                    <!-- Informatii despre masina -->
+                    <div class="info-panou">
+                        <p><strong>Marca:</strong> {{ masina['Marca'] }}</p>
+                        <p><strong>Model:</strong> {{ masina['Model'] }}</p>
+                        <p><strong>An fabricație:</strong> {{ masina['An_Fabricatie'] }}</p>
+                        <p><strong>Tarif:</strong> {{ masina['Tarif'] }} RON/zi</p>
+                        <p><strong>Locație:</strong> {{ masina['Nume_Locatie'] }}</p>
+                    </div>
+                    
+                    <!-- Buton pentru rezervarea masinii -->
+                    <button class="rezerva2-btn" data-masina-id="{{ masina['ID_Masina'] }}">Rezervă</button>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <!-- Buton pentru navigarea spre dreapta -->
+    <button class="carousel-next" onclick="moveCarousel(1, 2)">❯</button>
+</div>
+
+{% endblock %}

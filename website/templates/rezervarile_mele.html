@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+<!-- Titlul paginii -->
+{% block title %}Rezervările Mele{% endblock %}
+
+{% block content %}
+<!-- Titlul principal al paginii -->
+<h1 align="center">Rezervările Mele</h1>
+
+<div class="container">
+    <!-- Verifica daca exista rezervari -->
+    {% if rezervari %}
+        <div class="masini-container">
+            <!-- Itereaza prin fiecare rezervare -->
+            {% for rezervare_id, rezervare in rezervari.items() %}
+                <div class="masina-panou-selectata">
+                    <div class="header-rezervare">
+                        <!-- Afiseaza numarul rezervarii -->
+                        <h3>Rezervare {{ loop.index }}</h3>
+                        <!-- Afiseaza butonul de anulare doar daca rezervarea poate fi anulata -->
+                        {% if rezervare.Can_Cancel %}
+                            <button class="anuleaza-rezervare-btn" onclick="showDeleteModal2('{{ rezervare_id }}')">
+                                Anulează
+                            </button>
+                        {% endif %}
+                        <!-- Buton pentru vizualizarea detaliilor facturii -->
+                        <button 
+                            class="vezi-factura-btn" 
+                            data-numar-factura="{{ rezervare['Factura']['Numar_Factura'] or 'N/A' }}"
+                            data-data-plata="{{ rezervare['Factura']['Data_Plata'] or 'N/A' }}"
+                            data-data-emitere="{{ rezervare['Factura']['Data_Emitere'] or 'N/A' }}"
+                            data-suma-totala="{{ rezervare['Factura']['Suma_Totala'] or '0.00' }}"
+                            onclick="showFacturaModal(this)">
+                            Vezi Factura
+                        </button>
+                    </div>                    
+                    <!-- Afiseaza datele rezervarii -->
+                    <p><strong>Data închiriere:</strong> <span>{{ rezervare['Data_Inchiriere'] }}</span></p>
+                    <p><strong>Data returnare:</strong> <span>{{ rezervare['Data_Returnare'] }}</span></p>
+                    
+                    <!-- Itereaza prin masinile asociate rezervarii -->
+                    {% for masina_index, masina in enumerate(rezervare['Masini'], start=1) %}
+                        <div class="masina-details">
+                            <h4>Mașina {{ masina_index }}</h4>
+                            <p><strong>Model:</strong> <span>{{ masina['Model'] }}</span></p>
+                            <p><strong>Marca:</strong> <span>{{ masina['Marca'] }}</span></p>
+                            <p><strong>An fabricație:</strong> <span>{{ masina['An_Fabricatie'] }}</span></p>
+                            <p><strong>Tarif:</strong> <span>{{ masina['Tarif'] }} RON/zi</span></p>
+                            <p><strong>Locație:</strong> <span>{{ masina['Nume_Locatie'] }}</span></p>
+                            <p><strong>Adresă:</strong> <span>{{ masina['Adresa'] }}</span></p>
+                        </div>
+                    {% endfor %}                 
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- Mesaj afisat daca nu exista rezervari -->
+        <p class="error-messages">Nu aveți rezervări!</p>
+    {% endif %}
+</div>
+
+<!-- Modal pentru afisarea detaliilor facturii -->
+<div id="factura-modal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="closeFacturaModal()"></div>
+    <div class="modal-content">
+        <h3>Factura</h3>
+        <p><strong>Număr Factură:</strong> <span id="factura-numar"></span></p>
+        <p><strong>Data Plată:</strong> <span id="factura-data-plata"></span></p>
+        <p><strong>Data Emitere:</strong> <span id="factura-data-emitere"></span></p>
+        <p><strong>Suma Totală:</strong> <span id="factura-suma"></span> RON</p>
+        <button onclick="closeFacturaModal()" class="close-modal-btn">Închide</button>
+    </div>
+</div>
+
+<!-- Modal pentru confirmarea anularii unei rezervari -->
+<div id="delete-modal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="closeDeleteModal2()"></div>
+    <div class="modal-content">
+        <h3>Confirmare Anulare Rezervare</h3>
+        <p>Ești sigur că vrei să anulezi această rezervare?</p>
+        <div class="modal-buttons">
+            <button id="confirm-delete-btn" class="confirm-btn">Confirmă</button>
+            <button onclick="closeDeleteModal2()" class="cancel-btn">Anulează</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

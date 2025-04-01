@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+<!-- Titlul paginii -->
+{% block title %}Rezervare{% endblock %}
+
+{% block content %}
+
+<!-- Mesaj de succes daca rezervarea a fost confirmata -->
+{% if success_message %}
+    <div class="success-popup" id="successPopup">
+        {{ success_message }}
+    </div>
+{% endif %}
+
+<div class="container">
+    <!-- Verificam daca exista masini selectate -->
+    {% if masini %}
+    <form action="/confirmare-rezervare" method="POST" class="panou-masina-selectata">
+        <h2 style="grid-column: 1 / -1;">Mașinile Selectate</h2>
+        <!-- Iteram prin masinile selectate -->
+        {% for index, masina in enumerate(masini, start=1) %}
+        <div class="masina-panou-selectata">
+            <h3>Mașina {{ index }}</h3>
+            <p><strong>Marca:</strong> <span>{{ masina['Marca'] }}</span></p>
+            <p><strong>Model:</strong> <span>{{ masina['Model'] }}</span></p>
+            <p><strong>An fabricație:</strong> <span>{{ masina['An_Fabricatie'] }}</span></p>
+            <p><strong>Tarif:</strong> <span>{{ masina['Tarif'] }} RON/zi</span></p>
+            <p><strong>Locație:</strong> <span>{{ masina['Nume_Locatie'] }}</span></p>
+            <p><strong>Adresă:</strong> <span>{{ masina['Adresa'] }}</span></p>
+        </div>
+        {% endfor %}
+    </form>
+    {% else %}
+        <!-- Mesaj daca nu sunt selectate masini -->
+        <p class="error-messages">Nu ai selectat nicio mașină pentru rezervare. Întoarce-te la <a href="/rezerva-masina">pagina de selecție</a>.</p>
+    {% endif %}
+
+    <!-- Formular pentru completarea datelor rezervarii -->
+    <div class="panou">
+        <form action="/confirmare-rezervare" method="POST" class="panou-confirmare-rezervare">
+            <h2>Completare Date</h2>
+
+            <!-- Afisam erorile daca exista -->
+            {% if errors %}
+            <div class="error-messages">
+                <ul>
+                    {% for error in errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- Camp pentru data de inchiriere -->
+            <label for="data_inchiriere">Data închiriere*</label>
+            <input 
+                type="date" 
+                id="data_inchiriere" 
+                name="data_inchiriere" 
+                min="{{ datetime.now().strftime('%Y-%m-%d') }}" 
+                onchange="updateReturnDate()" 
+                value="{{ data_inchiriere if data_inchiriere else '' }}"
+            >
+
+            <!-- Camp pentru data de returnare -->
+            <label for="data_returnare">Data returnare*</label>
+            <input 
+                type="date" 
+                id="data_returnare" 
+                name="data_returnare" 
+                min="{{ datetime.now().strftime('%Y-%m-%d') }}" 
+                value="{{ data_returnare if data_returnare else '' }}"
+            >
+
+            <!-- Camp pentru email -->
+            <label for="email">Email*</label>
+            <input 
+                type="text" 
+                id="email" 
+                name="email" 
+                value="{{ email if email else '' }}"
+            >
+
+            <!-- Camp pentru prenume -->
+            <label for="first_name">Prenume*</label>
+            <input 
+                type="text" 
+                id="first_name" 
+                name="first_name" 
+                value="{{ first_name if first_name else '' }}"
+            >
+
+            <!-- Camp pentru nume -->
+            <label for="last_name">Nume*</label>
+            <input 
+                type="text" 
+                id="last_name" 
+                name="last_name" 
+                value="{{ last_name if last_name else '' }}"
+            >
+
+            <!-- Camp pentru CNP -->
+            <label for="cnp">CNP*</label>
+            <input 
+                type="text" 
+                id="cnp" 
+                name="cnp" 
+                value="{{ cnp if cnp else '' }}"
+            >
+
+            <!-- Camp pentru telefon -->
+            <label for="telefon">Telefon*</label>
+            <input 
+                type="text" 
+                id="telefon" 
+                name="telefon" 
+                value="{{ telefon if telefon else '' }}"
+            >
+
+            <!-- Afisam totalul platii -->
+            <label for="total_plata">Total Plata</label>
+            <p id="total_plata" style="margin-bottom: 20px; font-weight: bold; color: #555;">
+                (Introdu datele de închiriere)
+            </p>
+
+            <!-- ID-urile masinilor selectate sunt transmise ascuns -->
+            {% for masina in masini %}
+            <input type="hidden" name="masini_ids" value="{{ masina['ID_Masina'] }}" data-tarif="{{ masina['Tarif'] }}">
+            {% endfor %}
+
+            <!-- Buton pentru confirmarea rezervarii -->
+            <button type="submit" class="rezerva-btn">Confirmă Rezervarea</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+<!-- Titlul paginii -->
+{% block title %}Modificare Date Masini{% endblock %}
+
+{% block content %}
+
+<!-- Afisam un mesaj de succes daca exista -->
+{% if success_message %}
+<div class="success-popup" id="successPopup">
+    {{ success_message }}
+</div>
+{% endif %}
+
+<div class="container"></div>
+    <!-- Formular pentru Adaugarea unei masini -->
+    <form method="POST" enctype="multipart/form-data">
+        <h1 align="center">Adaugă o Mașină</h1>
+        {% if errors %}
+            <!-- Afisam erorile -->
+            <div class="error-messages">
+                <ul>
+                    {% for error in errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <!-- Selectare Marca -->
+        <div class="form-group">
+            <label for="id_marca">Marca*</label>
+            <select name="id_marca" id="id_marca" class="custom-select">
+                <option value="" disabled {% if not selected_marca %}selected{% endif %}>Selectează Marca</option>
+                {% for marca in marci %}
+                    <option value="{{ marca[0] }}" {% if selected_marca == marca[0] %}selected{% endif %}>
+                        {{ marca[1] }}
+                    </option>
+                {% endfor %}
+            </select>        
+        </div>
+
+        <!-- Selectare Model -->
+        <div class="form-group">
+            <label for="id_model">Model*</label>      
+            <select name="id_model" id="id_model" class="custom-select">
+                <option value="" disabled selected>Selectează Marca întâi</option>
+                {% for model in modele %}
+                    <option value="{{ model[0] }}">{{ model[2] }}</option> <!-- Index corectat -->
+                {% endfor %}
+            </select>        
+        </div>
+
+        <!-- Selectare Locație -->
+        <div class="form-group">
+            <label for="id_locatie">Locație*</label>
+            <select name="id_locatie" id="id_locatie" class="custom-select">
+                <option value="" disabled selected>Selectează Locație</option>
+                {% for locatie in locatii %}
+                    <option value="{{ locatie[0] }}">{{ locatie[1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Introducere Tarif -->
+        <div class="form-group">
+            <label for="tarif">Tarif (RON/zi)*</label>
+            <input type="text" name="tarif">
+        </div>
+
+        <!-- Introducere An Fabricație -->
+        <div class="form-group">
+            <label for="an_fabricatie">An de fabricație*</label>
+            <input type="number" name="an_fabricatie">
+        </div>
+
+        <!-- Adăugare Imagine -->
+        <div class="form-group">
+            <label for="imagine">Imagine (optional)</label>
+            <!-- Previzualizare imagine -->
+            <div style="margin-bottom: 10px;">
+                <img id="preview-image" src="/static/photos/default.png" alt="Previzualizare imagine" style="max-width: 200px; max-height: 200px; display: block; margin-top: 10px;">
+            </div>
+            <input type="file" name="imagine" id="imagine" accept="image/*">
+        </div>
+
+        <!-- Trimite formular -->
+        <div>
+            <button type="submit">Adaugă mașină</button>
+        </div>
+    </form>
+
+<hr>
+
+    <!-- Formular pentru Modificarea unei masini -->
+    <form method="POST" enctype="multipart/form-data" action="/update-car" id="update-car-form">
+        <h1 align="center">Modifică Datele Unei Mașini</h1>
+
+        {% if errors %}
+            <!-- Afisam erorile -->
+            <div class="error-messages">
+                <ul>
+                    {% for error in errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <!-- Selectare Mașină -->
+        <div class="form-group">
+            <label for="id_masina">Selectează Mașina*</label>
+            <select name="id_masina" id="id_masina" class="custom-select">
+                <option value="" disabled selected>Selectează Mașina</option>
+                {% for masina in masini %}
+                <option value="{{ masina[0] }}" 
+                    data-tarif="{{ masina[5] }}" 
+                    data-id-locatie="{{ masina[4] }}" 
+                    data-imagine="{{ masina[6].replace('website/', '') }}">
+                    {{ masina[1] }} {{ masina[2] }} {{ masina[3] }}, {{ masina[4] }} ({{ masina[5] }} RON/zi)
+                </option>
+                {% endfor %}
+            </select>            
+        </div>
+        
+        <!-- Modificare Tarif -->
+        <div class="form-group">
+            <label for="tarif">Tarif (RON/zi)*</label>
+            <input type="text" name="tarif" id="update_tarif" placeholder="Introduceți tariful">
+        </div>
+
+        <!-- Modificare Locație -->
+        <div class="form-group">
+            <label for="id_locatie">Locație*</label>
+            <select name="id_locatie" id="update_id_locatie" class="custom-select">
+                <option value="" disabled selected>Selectează Locație</option>
+                {% for locatie in locatii %}
+                    <option value="{{ locatie[0] }}">{{ locatie[1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Modificare Imagine -->
+        <div class="form-group">
+            <label for="imagine">Imagine (optional)</label>
+            <div>
+                <img id="preview-image2" src="/static/photos/default.png" alt="Previzualizare imagine" 
+                    style="max-width: 200px; max-height: 200px; display: block; margin-top: 10px;">
+            </div>
+            <input type="file" name="imagine" id="imagine2" accept="image/*">
+        </div>
+
+        <!-- Trimite formular -->
+        <div>
+            <button type="submit" class="btn btn-primary">Modifică Mașina</button>
+        </div>
+    </form>
+
+    <hr>
+
+    <!-- Formular pentru Ștergerea unei mașini -->
+    <form method="POST" action="/realdelete-masina" id="delete-car-form">
+        <h1 align="center">Șterge o Mașină</h1>
+        
+        <!-- Selectare Mașină -->
+        <div class="form-group">
+            <label for="id_masina_delete">Selectează Mașina*</label>
+            <select name="id_masina" id="id_masina_delete" class="custom-select" onchange="updateDeleteDetails()">
+                <option value="" disabled selected>Selectează Mașina</option>
+                {% for masina in masini %}
+                <option value="{{ masina[0] }}"
+                    data-marca="{{ masina[1] }}"
+                    data-model="{{ masina[2] }}"
+                    data-an="{{ masina[3] }}"
+                    data-tarif="{{ masina[5] }}"
+                    data-locatie="{{ masina[4] }}"
+                    data-imagine="{{ masina[6].replace('website/', '') }}">
+                    {{ masina[1] }} {{ masina[2] }} {{ masina[3] }}, {{ masina[4] }} ({{ masina[5] }} RON/zi)
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    
+        <!-- Detalii despre Mașină pentru ștergere -->
+        <div id="delete-car-details" style="display: none; margin-top: 20px;">
+            <img id="delete-preview-image" src="" alt="Previzualizare imagine" style="max-width: 400px; max-height: 400px; display: block; margin: auto;">
+        </div>
+    
+        <!-- Buton Ștergere -->
+        <div style="margin-top: 20px;">
+            <button 
+                type="button" 
+                class="btn btn-danger" 
+                id="delete-button" 
+                disabled 
+                onclick="showDeleteModal(document.getElementById('id_masina_delete').value)"
+            >
+                Șterge Mașina
+            </button>
+        </div>
+    </form>
+
+    <!-- Modal pentru Confirmare Ștergere -->
+    <div id="delete-modal" class="modal">
+        <div class="modal-overlay" onclick="closeDeleteModal()"></div>
+        <div class="modal-content">
+            <h3>Confirmare Ștergere</h3>
+            <p id="delete-message"></p>
+            <div class="modal-footer">
+                <button class="confirm-btn" id="delete-confirm-btn">Confirmă Ștergerea</button>
+                <button class="cancel-btn" onclick="closeDeleteModal()">Anulează</button>
+            </div>
+        </div>
+    </div>
+        
+</div>
+
+{% endblock %}

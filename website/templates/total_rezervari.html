@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Total Rezervari{% endblock %}
+
+{% block content %}
+<h1 align="center">Total Rezervari</h1>
+
+{% if success_message %}
+<!-- Afisam un mesaj de succes daca exista -->
+<div class="success-popup" id="successPopup">
+    {{ success_message }}
+</div>
+{% endif %}
+
+<!-- Form pentru filtrarea rezervarilor -->
+<div class="filter-container">
+    <form method="GET" action="{{ url_for('views.total_rezervari') }}">
+        <!-- Filtru pentru email-ul clientului -->
+        <label for="filter-email">Client Email:</label>
+        <input type="text" id="filter-email" name="email" placeholder="Introduceti email-ul" value="{{ request.args.get('email', '') }}">
+
+        <!-- Filtru pentru data inchirierii -->
+        <label for="filter-data-inchiriere">Data Inchiriere:</label>
+        <input type="date" id="filter-data-inchiriere" name="data_inchiriere" 
+            value="{{ request.args.get('data_inchiriere', '') }}" 
+            onchange="handleDateChange()" />
+
+        <!-- Filtru pentru data returnarii -->
+        <label for="filter-data-returnare">Data Returnare:</label>
+        <input type="date" id="filter-data-returnare" name="data_returnare" 
+            value="{{ request.args.get('data_returnare', '') }}" 
+            onchange="handleDateChange()" disabled />
+
+        <!-- Filtru pentru masina -->
+        <label for="filter-masina">Masina:</label>
+        <select id="filter-masina" name="masina" class="custom-select">
+            <option value="">Toate</option>
+            {% for masina in masini %}
+                <option value="{{ masina[0] }}">{{ masina[1] }} {{ masina[2] }} {{ masina[3] }}</option>
+            {% else %}
+                <option value="" disabled>Nicio masina disponibila</option>
+            {% endfor %}
+        </select>
+        
+        <!-- Buton pentru aplicarea filtrelor -->
+        <button type="submit">Filtreaza</button>
+    </form>
+</div>
+
+<!-- Afisarea rezervarilor -->
+<div class="container">
+    {% if rezervari %}
+        <div class="rezervari-container">
+            {% for rezervare_id, rezervare in rezervari.items() %}
+                <div class="rezervare-card">
+                    <!-- Detalii despre rezervare -->
+                    <h3>Rezervare #{{ rezervare_id }}</h3>
+                    <button class="delete-rezervare-btn" onclick="showDeleteModal2(`{{ rezervare_id }}`)">
+                        Sterge Rezervare
+                    </button>                    
+                    <p><strong>Data Inchiriere:</strong> <span>{{ rezervare.Data_Inchiriere }}</span></p>
+                    <p><strong>Data Returnare:</strong> <span>{{ rezervare.Data_Returnare }}</span></p>
+                    
+                    <!-- Detalii despre client -->
+                    <div>
+                        <h4>Client:</h4>
+                        <p><strong>Nume:</strong> <span>{{ rezervare.Client.Nume }}</span></p>
+                        <p><strong>Prenume:</strong> <span>{{ rezervare.Client.Prenume }}</span></p>
+                        <p><strong>CNP:</strong> <span>{{ rezervare.Client.CNP }}</span></p>
+                        <p><strong>Email:</strong> <span>{{ rezervare.Client.Email }}</span></p>
+                        <p><strong>Telefon:</strong> <span>{{ rezervare.Client.Telefon }}</span></p>
+                    </div>
+
+                    <!-- Detalii despre masinile rezervate -->
+                    <div>
+                        <h4>Masini:</h4>
+                        {% for masina_index, masina in enumerate(rezervare.Masini, start=1) %}
+                            <div class="masina-details">
+                                <h5>Masina {{ masina_index }}</h5>
+                                <p><strong>Marca:</strong> <span>{{ masina.Marca }}</span></p>
+                                <p><strong>Model:</strong> <span>{{ masina.Model }}</span></p>
+                                <p><strong>An Fabricatie:</strong> <span>{{ masina.An_Fabricatie }}</span></p>
+                                <p><strong>Tarif:</strong> <span>{{ masina.Tarif }} RON/zi</span></p>
+                                <p><strong>Locatie:</strong> <span>{{ masina.Nume_Locatie }}</span></p>
+                                <p><strong>Adresa:</strong> <span>{{ masina.Adresa }}</span></p>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Detalii despre factura -->
+                    <div>
+                        <h4>Factura:</h4>
+                        <p><strong>Numar Factura:</strong> <span>{{ rezervare.Factura.Numar_Factura }}</span></p>
+                        <p><strong>Data Plata:</strong> <span>{{ rezervare.Factura.Data_Plata }}</span></p>
+                        <p><strong>Data Emitere:</strong> <span>{{ rezervare.Factura.Data_Emitere }}</span></p>
+                        <p><strong>Suma Totala:</strong> <span>{{ rezervare.Factura.Suma_Totala }} RON</span></p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- Mesaj in cazul in care nu exista rezervari -->
+        <p class="error-messages">Nu exista rezervari disponibile.</p>
+    {% endif %}
+</div>
+
+<!-- Modal pentru confirmarea stergerii -->
+<div id="delete-modal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="closeDeleteModal2()"></div>
+    <div class="modal-content">
+        <h3>Confirmare Stergere</h3>
+        <p>Esti sigur ca vrei sa stergi aceasta rezervare?</p>
+        <div class="modal-buttons">
+            <button id="confirm-delete-btn" class="confirm-btn">Confirma</button>
+            <button onclick="closeDeleteModal2()" class="cancel-btn">Anuleaza</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

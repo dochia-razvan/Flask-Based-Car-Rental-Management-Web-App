@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+<!-- Titlul paginii -->
+{% block title %}Rezerva Masina{% endblock %}
+
+{% block header_content %}
+<div class="full-width-header">
+    {% if user.is_authenticated and user.roles == 'angajat' %}
+    <!-- Buton pentru activare sau dezactivare modul de editare -->
+    <button id="edit-toggle-btn" 
+            class="edit-btn {{ 'active' if edit_mode else '' }}" 
+            onclick="toggleEditMode()">
+        {{ 'Disable Edit' if edit_mode else 'Enable Edit' }}
+    </button>
+    {% endif %}
+    <!-- Sectiune pentru filtrare -->
+    <div class="dropdown-container">
+        
+        {% if edit_mode %}
+        <!-- Dropdown pentru filtrare dupa status -->
+        <label for="sort-status-dropdown" class="dropdown-label">Active:</label>
+        <select id="sort-status-dropdown" class="sort-dropdown">
+            <option value="all" {% if sort_status == 'all' %}selected{% endif %}>Toate</option>
+            <option value="active" {% if sort_status == 'active' %}selected{% endif %}>Active</option>
+            <option value="inactive" {% if sort_status == 'inactive' %}selected{% endif %}>Inactive</option>
+        </select>
+        {% endif %}
+
+        <!-- Dropdown pentru filtrare dupa marca -->
+        <label for="filter-marca">Marca:</label>
+        <select id="filter-marca" class="custom-select2">
+            <option value="">Toate</option>
+            {% for marca in marci %}
+            <option value="{{ marca[0] }}">{{ marca[1] }}</option>
+            {% endfor %}
+        </select>
+
+        <!-- Dropdown pentru filtrare dupa model -->
+        <label for="filter-model">Model:</label>
+        <select id="filter-model" class="custom-select2" disabled>
+            <option value="">Selectează Marca</option>
+        </select>
+
+        <!-- Input pentru anul de fabricatie -->
+        <label for="filter-an-fabricatie">An fabricație:</label>
+        <input type="number" id="filter-an-fabricatie" class="custom-input2" min="1990" max="{{ datetime.now().year }}" placeholder="Caută an...">
+
+        <!-- Input pentru tarif maxim -->
+        <label for="filter-tarif-maxim">Tarif maxim:</label>
+        <input type="number" id="filter-tarif-maxim" class="custom-input2" placeholder="Tarif maxim...">
+
+        <!-- Dropdown pentru filtrare dupa oras -->
+        <label for="filter-oras">Oraș:</label>
+        <select id="filter-oras" class="custom-select2">
+            <option value="">Toate</option>
+            {% for oras in orase %}
+                <option value="{{ oras }}" {% if oras == selected_oras %}selected{% endif %}>{{ oras }}</option>
+            {% endfor %}
+        </select>
+
+        <!-- Input pentru data inchirierii -->
+        <label for="filter-data-inchiriere">Data închiriere:</label>
+        <input 
+            type="date" 
+            id="filter-data-inchiriere" 
+            class="custom-input2" 
+            min="{{ datetime.now().strftime('%Y-%m-%d') }}" 
+            onchange="handleDateChange()"
+        />
+
+        <!-- Input pentru data returnarii -->
+        <label for="filter-data-returnare">Data returnare:</label>
+        <input 
+            type="date" 
+            id="filter-data-returnare" 
+            class="custom-input2" 
+            disabled
+            onchange="handleDateChange()"
+        />
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+    <!-- Afisam mesajul de succes daca exista -->
+    {% if success_message %}
+        <div class="success-popup" id="successPopup">
+            {{ success_message }}
+        </div>
+    {% endif %}
+
+    <!-- Mesaje de eroare pentru anul de fabricatie si tarif -->
+    <div id="error-message-an" class="error-message" style="display: none;">
+        Anul de fabricație trebuie să fie între 1990 și {{ datetime.now().year }}!
+    </div>
+
+    <div id="error-message-tarif" class="error-message" style="display: none;">
+        Tariful maxim nu este valid!
+    </div>
+
+    <!-- Verificam daca exista masini disponibile -->
+    {% if masini|length == 0 %}
+    <div class="no-masini-container">
+        <p class="no-masini-text">Nicio mașină valabilă momentan!</p>
+    </div>
+    {% else %}
+        <!-- Afisam masinile disponibile -->
+        <div class="masini-container">
+            {% for masina in masini %}
+                <div class="masina-panou" data-masina-id="{{ masina['ID_Masina'] }}">
+                    <div class="imagine-panou">
+                        <img src="{{ masina['Imagine_URL'] }}" alt="{{ masina['Model'] }}">
+                    </div>
+                    <div class="info-panou">
+                        <p><strong>Marca:</strong> <span>{{ masina['Marca'] }}</span></p>
+                        <p><strong>Model:</strong> <span>{{ masina['Model'] }}</span></p>
+                        <p><strong>An fabricație:</strong> <span>{{ masina['An_Fabricatie'] }}</span></p>
+                        <p><strong>Tarif:</strong> <span>{{ masina['Tarif'] }} RON/zi</span></p>
+                        <p><strong>Locație:</strong> <span>{{ masina['Nume_Locatie'] }}</span></p>
+                        <p><strong>Adresă:</strong> <span>{{ masina['Adresa'] }}</span></p>
+                        {% if edit_mode %}
+                        <p><strong>Activă:</strong> <span>{{ masina['IsActive'] }}</span></p>
+                        {% endif %}
+                    </div>
+                    {% if edit_mode %}
+                        {% if masina['IsActive'] == 'Da' %}
+                            <button class="delete-btn" data-masina-id="{{ masina['ID_Masina'] }}" 
+                                    onclick="showDeactivateModal(`{{ masina['ID_Masina'] }}`)">Dezactivează</button>
+                        {% else %}
+                            <button class="activate-btn" data-masina-id="{{ masina['ID_Masina'] }}" 
+                                    onclick="showActivateModal(`{{ masina['ID_Masina'] }}`)">Activează</button>
+                        {% endif %}
+                    {% else %}
+                        <button class="rezerva2-btn" data-masina-id="{{ masina['ID_Masina'] }}">Rezervă</button>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div> 
+    {% endif %}
+
+    <!-- Modal pentru confirmarea dezactivarii -->
+    <div id="deactivate-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <h3>Confirmare Dezactivare</h3>
+            <p id="deactivate-message"></p>
+            <div class="modal-footer">
+                <button id="modal-confirm-btn" class="confirm-btn">Confirmă</button>
+                <button id="modal-cancel-btn" class="cancel-btn">Anulează</button>
+            </div>
+        </div>
+    </div>
+    
+{% endblock %}

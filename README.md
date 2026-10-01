@@ -7,5 +7,3 @@ It has: user authentication and role management (clients and employees), car man
 Backend: Flask (Python), Flask-Login, SQLAlchemy, SQLite
 
 Frontend: HTML, CSS, JavaScript
-
-A project for the Faculty of Automatic Control and Computers, University Politehnica of Bucharest.
